@@ -5,7 +5,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using BTDB.Buffer;
 using BTDB.FieldHandler;
@@ -193,9 +195,7 @@ namespace BTDB.Service
                         Exception ex;
                         try
                         {
-                            var exTypeName = reader.ReadString();
-                            var exTypeMessage = reader.ReadString();
-                            ex = new Exception(exTypeMessage);
+                            ex = new BinaryFormatter().Deserialize(new MemoryStream(reader.ReadByteArray())) as Exception;
                         }
                         catch (Exception e)
                         {
@@ -1063,8 +1063,11 @@ namespace BTDB.Service
             var message = new ByteBufferWriter();
             message.WriteVUInt32((uint)Command.Exception);
             message.WriteVUInt32(resultId);
-            message.WriteString(ex.GetType().FullName);
-            message.WriteString(ex.Message);
+            using (var stream = new MemoryStream())
+            {
+                new BinaryFormatter().Serialize(stream, ex);
+                message.WriteByteArray(stream.ToArray());
+            }
             SendDataIgnoringExceptions(message.Data);
         }
 

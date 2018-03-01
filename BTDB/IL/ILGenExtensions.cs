@@ -57,6 +57,24 @@ namespace BTDB.IL
             return il;
         }
 
+        public static IILGen LdcI8(this IILGen il, long value)
+        {
+            il.Emit(OpCodes.Ldc_I8, value);
+            return il;
+        }
+
+        public static IILGen LdcR4(this IILGen il, float value)
+        {
+            il.Emit(OpCodes.Ldc_R4, value);
+            return il;
+        }
+
+        public static IILGen LdcR8(this IILGen il, double value)
+        {
+            il.Emit(OpCodes.Ldc_R8, value);
+            return il;
+        }
+
         public static IILGen Ldarg(this IILGen il, ushort parameterIndex)
         {
             switch (parameterIndex)
@@ -316,6 +334,12 @@ namespace BTDB.IL
             return il;
         }
 
+        public static IILGen InitObj(this IILGen il, Type type)
+        {
+            il.Emit(OpCodes.Initobj, type);
+            return il;
+        }
+
         public static IILGen Callvirt(this IILGen il, MethodInfo methodInfo)
         {
             if (methodInfo.IsStatic) throw new ArgumentException("Method in Callvirt cannot be static");
@@ -538,7 +562,7 @@ namespace BTDB.IL
             il.Emit(OpCodes.Ldtoken, type);
             return il;
         }
-        
+
         public static IILGen Callvirt(this IILGen il, Expression<Action> expression)
         {
             var methodInfo = (expression.Body as MethodCallExpression).Method;
@@ -622,6 +646,43 @@ namespace BTDB.IL
         public static IILGen Break(this IILGen il)
         {
             il.Emit(OpCodes.Break);
+            return il;
+        }
+
+        public static IILGen Ld(this IILGen il, object value)
+        {
+            switch (value)
+            {
+                case null:
+                    il.Ldnull();
+                    break;
+                case bool b when !b:
+                    il.LdcI4(0);
+                    break;
+                case bool b when b:
+                    il.LdcI4(1);
+                    break;
+                case Int16 i16:
+                    il.LdcI4(i16); // there is no instruction for 16b int
+                    break;
+                case Int32 i32:
+                    il.LdcI4(i32);
+                    break;
+                case Int64 i64:
+                    il.LdcI8(i64);
+                    break;
+                case Single f:
+                    il.LdcR4(f);
+                    break;
+                case Double d:
+                    il.LdcR8(d);
+                    break;
+                case String s:
+                    il.Ldstr(s);
+                    break;
+                default:
+                    throw new ArgumentException($"{value} is not supported.", nameof(value));
+            }
             return il;
         }
     }

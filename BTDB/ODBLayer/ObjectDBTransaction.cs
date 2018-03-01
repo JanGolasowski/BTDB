@@ -78,7 +78,6 @@ namespace BTDB.ODBLayer
             var tableVersion = reader.ReadVUInt32();
             var tableInfo = _owner.TablesInfo.FindById(tableId);
             if (tableInfo == null) throw new BTDBException($"Unknown TypeId {tableId} of inline object");
-            EnsureClientTypeNotNull(tableInfo);
             var freeContentTuple = tableInfo.GetFreeContent(tableVersion);
             var readerWithFree = (DBReaderWithFreeInfoCtx)readerCtx;
             freeContentTuple.Item2(this, null, reader, readerWithFree.DictIds, readerWithFree.Oids);
@@ -867,5 +866,32 @@ namespace BTDB.ODBLayer
             return builder.Build(relationName, relationDBManipulatorType);
         }
 
+        Dictionary<uint, IRelationModificationCounter> _modificationCounters;
+        public IRelationModificationCounter GetRelationModificationCounter(uint relationId)
+        {
+            if (_modificationCounters == null)
+                _modificationCounters = new Dictionary<uint, IRelationModificationCounter>();
+            IRelationModificationCounter result;
+            if (_modificationCounters.TryGetValue(relationId, out result))
+                return result;
+            result = new UnforgivingRelationModificationCounter();
+            _modificationCounters.Add(relationId, result);
+            return result;
+        }
+
+        public void DeleteAllData()
+        {
+            _lastDictId = 0;
+            // Resetting last oid is risky due to singletons. So better to waste something.
+            _keyValueTrProtector.Start();
+            _keyValueTr.SetKeyPrefix(ObjectDB.AllObjectsPrefix);
+            _keyValueTr.EraseAll();
+            _keyValueTr.SetKeyPrefix(ObjectDB.AllDictionariesPrefix);
+            _keyValueTr.EraseAll();
+            _keyValueTr.SetKeyPrefix(ObjectDB.AllRelationsPKPrefix);
+            _keyValueTr.EraseAll();
+            _keyValueTr.SetKeyPrefix(ObjectDB.AllRelationsSKPrefix);
+            _keyValueTr.EraseAll();
+        }
     }
 }

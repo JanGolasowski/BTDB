@@ -33,7 +33,6 @@ namespace BTDB.IL
             return new ILDynamicTypeImpl(name, baseType, interfaces);
         }
 
-
         static readonly ConcurrentDictionary<string, int> UniqueNames = new ConcurrentDictionary<string, int>();
 
         internal static string UniqueName(string name)
@@ -44,7 +43,8 @@ namespace BTDB.IL
             name = name.Replace(" ", "");
             var uniqueName = name;
             var uniqueIdx = UniqueNames.AddOrUpdate(name, 0, (s, v) => v + 1);
-            if (uniqueIdx != 0) uniqueName = $"{name}__{uniqueIdx}";
+            if (uniqueIdx != 0)
+                uniqueName = $"{name}__{uniqueIdx}";
             return uniqueName;
         }
 

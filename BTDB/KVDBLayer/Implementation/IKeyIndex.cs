@@ -1,6 +1,6 @@
 namespace BTDB.KVDBLayer
 {
-    interface IKeyIndex : IFileInfo
+    public interface IKeyIndex : IFileInfo
     {
         uint TrLogFileId { get; }
         uint TrLogOffset { get; }
@@ -8,5 +8,6 @@ namespace BTDB.KVDBLayer
         ulong CommitUlong { get; }
         KeyIndexCompression Compression { get; }
         ulong[] Ulongs { get; }
+        long[] UsedFilesInOlderGenerations { get; set; }
     }
 }

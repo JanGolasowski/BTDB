@@ -26,7 +26,7 @@ namespace BTDB.ODBLayer
         internal static readonly byte[] AllObjectsPrefix = { 1 }; // oid => Index Table, version number, Value
         internal static readonly byte[] AllDictionariesPrefix = { 2 }; // Index Dictionary, Key => Value
         internal static readonly byte[] AllRelationsPKPrefix = { 3 }; // Index Relation, Primary Key => version number, Value (without primary key)
-        internal static readonly byte[] AllRelationsSKPrefix = { 4 }; // Index Relation, Secondary Key Index, Secondary Key => Primary Key
+        internal static readonly byte[] AllRelationsSKPrefix = { 4 }; // Index Relation, Secondary Key Index, Secondary Key, primary key fields not present in secondary key => {}
         readonly IInstanceRegistry _instanceRegistry = new InstanceRegistry();
         ITableInfoResolver _tableInfoResolver;
         IRelationInfoResolver _relationsInfoResolver;
@@ -56,7 +56,8 @@ namespace BTDB.ODBLayer
 
         public void Open(IKeyValueDB keyValueDB, bool dispose, DBOptions options)
         {
-            _keyValueDB = keyValueDB ?? throw new ArgumentNullException(nameof(keyValueDB));
+            if (keyValueDB == null) throw new ArgumentNullException(nameof(keyValueDB));
+            _keyValueDB = keyValueDB;
             _dispose = dispose;
             _type2Name = options.CustomType2NameRegistry ?? new Type2NameRegistry();
             _autoRegisterTypes = options.AutoRegisterType;
